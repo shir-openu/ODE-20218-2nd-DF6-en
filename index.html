@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Exercise</title>
+
+<!-- MathJax v3 -->
+<script>
+  window.MathJax = {
+    tex: {
+      inlineMath: [['\\(','\\)']],
+      displayMath: [['\\[','\\]']],
+      packages: {'[+]':['noerrors']}
+    },
+    loader: { load: ['[tex]/noerrors'] },
+    chtml: { scale: 1.02, mtextInheritFont: true }
+  };
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+
+<!-- mathjs -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
+
+<style>
+  :root{
+    --bg:#0e1424; --panel:#111827; --ink:#e5e7eb; --muted:#9aa6b2;
+    --ring:#334155; --accent:#60a5fa; --ok:#34d399; --bad:#ef4444;
+    --field:#1f2a3a;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;direction:ltr}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font-family:'Segoe UI','Tahoma','Arial',serif;text-align:left;
+  }
+  .wrap{max-width:1200px;margin:0 auto;padding:22px}
+  h1{font-size:1.35rem;margin:0 0 16px}
+
+  /* Tabs */
+  .tabs{display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap}
+  .tab-btn{
+    cursor:pointer; padding:8px 12px; border:1px solid var(--ring);
+    background:var(--field); color:var(--ink); border-radius:10px; font-size:.95rem;
+  }
+  .tab-btn[aria-selected="true"]{border-color:var(--accent)}
+  .tab-panel{display:none}
+  .tab-panel.active{display:block}
+
+  .grid{display:grid;grid-template-columns:1.2fr 1fr;gap:16px}
+  @media (max-width:920px){.grid{grid-template-columns:1fr}}
+
+  .card{background:var(--panel);border:1px solid var(--ring);border-radius:14px;padding:14px 16px}
+  .section-title{font-size:1.05rem;margin:0 0 10px;color:var(--ink)}
+
+  label{font-size:.92rem;color:var(--muted);display:block}
+  textarea{
+    width:100%;background:var(--field);color:var(--ink);
+    border:1px solid var(--ring);border-radius:12px;
+    padding:10px 12px;font-size:1rem;line-height:1.5;outline:none;
+    direction:ltr;text-align:left;font-family:monospace;
+  }
+  textarea:focus{border-color:var(--accent)}
+
+  .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px;justify-content:flex-start}
+  .pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--ring);background:var(--field);padding:6px 10px;border-radius:999px;font-size:.9rem}
+  .btn{cursor:pointer;background:var(--field);border:1px solid var(--ring);color:var(--ink);padding:8px 12px;border-radius:10px}
+  .btn:hover{border-color:var(--accent)}
+
+  .btn-ai {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+  }
+  .btn-ai:hover {
+    opacity: 0.9;
+    border: 1px solid var(--accent);
+  }
+  .ai-chat-box {
+    margin-top: 12px;
+    padding: 14px;
+    background: #1a1f35;
+    border: 1px solid #667eea;
+    border-radius: 12px;
+    max-height: 300px;
+    overflow-y: auto;
+    position: relative;
+  }
+  .ai-message {
+    margin: 8px 0;
+    padding: 10px;
+    background: var(--field);
+    border-radius: 8px;
+    line-height: 1.6;
+  }
+  .ai-loading {
+  color: var(--muted);
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--ring);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+  .btn-close-ai {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 4px 10px;
+    font-size: 0.85rem;
+    background: var(--field);
+    border: 1px solid var(--ring);
+    color: var(--ink);
+    cursor: pointer;
+    border-radius: 8px;
+  }
+  .btn-close-ai:hover {
+    border-color: var(--accent);
+  }
+
+  .status{font-size:.9rem;margin-top:6px;text-align:left}
+  .status.ok{color:var(--ok)} .status.bad{color:var(--bad)}
+
+  .render{
+    background:#0b1020;border:1px dashed #243047;border-radius:12px;
+    padding:14px 16px;min-height:96px;overflow:auto;direction:ltr;text-align:center;
+  }
+  .hint{color:var(--muted);font-size:.95rem;margin-top:8px;line-height:1.9}
+  .monospace{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Courier New",monospace}
+  select{background:var(--field);color:var(--ink);border:1px solid var(--ring);border-radius:10px;padding:6px 8px}
+
+  /* Footer */
+  .footer{
+    margin-top:24px;padding:12px 0;
+    text-align:left;font-size:0.85rem;
+    color:var(--muted);direction:ltr;
+  }
+</style>
+<style>
+  /* Minimal style for equation toolbar */
+  .eqtb-wrap{ margin:8px 0 }
+  .eqtb{
+    display:flex; flex-wrap:wrap; gap:.4rem; align-items:center;
+    background:#0b1020; border:1px solid #243047; border-radius:10px; padding:.5rem;
+  }
+  .eqtb button, .eqtb select{
+    font:inherit; line-height:1; padding:.42rem .6rem;
+    border:1px solid var(--ring); background:var(--field); color:var(--ink);
+    border-radius:.5rem; cursor:pointer;
+  }
+  .eqtb button:hover{ border-color:var(--accent) }
+  .eqtb .sep{ width:1px; height:1.4rem; background:#243047; margin:0 .2rem }
+</style>
+
+</head>
+<body>
+  <div class="wrap">
+    <h1>Exercise</h1>
+
+    <!-- Tabs header -->
+    <div class="tabs" role="tablist" aria-label="Tab navigation">
+      <button class="tab-btn" role="tab" aria-selected="true"  aria-controls="tab-ex"   id="tabbtn-ex">Exercise</button>
+      <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-h1"  id="tabbtn-h1">Hint 1</button>
+      <button class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-h2"  id="tabbtn-h2">Hint 2</button>
+    </div>
+
+    <!-- Panel: Exercise -->
+    <section class="tab-panel active" id="tab-ex" role="tabpanel" aria-labelledby="tabbtn-ex">
+      <div class="grid">
+        <!-- Left: The question -->
+        <aside class="card">
+          <div class="section-title">Solve</div>
+          <div id="problemRender" class="render"></div>
+        </aside>
+
+        <!-- Right: Student answer -->
+        <section class="card">
+          <div class="section-title">Enter your final answer here</div>
+
+<label for="inputRaw">Plain or LaTeX input</label>
+
+<!-- Equation editor toolbar mount above input box -->
+<div id="eqToolbar" class="eqtb-wrap" aria-label="Equation editor (insert symbols)"></div>
+
+<textarea id="inputRaw" rows="6"
+placeholder="Example LaTeX input:
+y = C_1 \sin(3x) + C_2 \cos(2x) + x \ln|x| + \frac{x^2}{2}
+or in Plain mode:
+y = C_1*sin(3x) + C_2*cos(2x) + x*ln|x| + (x^2)/2"></textarea>
+
+
+<div class="controls">
+  <button class="btn" id="btnClear">Clear</button>
+  <button class="btn btn-ai" id="btnAIHelp">Digital Friend</button>
+</div>
+
+<div id="status" class="status"></div>
+
+          <label style="margin-top:10px;display:block">Preview</label>
+          <div id="render" class="render"></div>
+
+          <div id="checkMsg" class="status" style="margin-top:10px"></div>
+
+          <div id="aiResponse" class="ai-chat-box" style="display:none">
+            <button class="btn-close-ai" id="btnCloseAI">Close &times;</button>
+            <div id="aiResponseContent"></div>
+          </div>
+
+         <div class="hint">
+  &bull; Wrap complex expressions in { }<br/>
+  &bull; Correctness checking works in Plain input mode<br/>
+  &bull; Use only constants of the form: C_1, C_2, C_3 ... for the homogeneous solution<br/>
+  &bull; Example LaTeX input: <code style="color:var(--muted)">y = C_1 \sin(2x) + C_2 \cos(x) - x \ln|x| + \frac{x^2}{2}</code><br/>
+</div>
+        </section>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        &copy; Developed by Shir Sivroni
+      </div>
+    </section>
+
+    <!-- Panel: Hint 1 -->
+    <section class="tab-panel" id="tab-h1" role="tabpanel" aria-labelledby="tabbtn-h1">
+      <div class="card">
+        <div class="section-title">Hint 1</div>
+        <div class="hint" id="hint1Box"></div>
+      </div>
+    </section>
+
+    <!-- Panel: Hint 2 -->
+    <section class="tab-panel" id="tab-h2" role="tabpanel" aria-labelledby="tabbtn-h2">
+      <div class="card">
+        <div class="section-title">Hint 2</div>
+        <div class="hint" id="hint2Box"></div>
+      </div>
+    </section>
+
+    <!-- Panel: Solution display (hidden) -->
+    <section class="tab-panel" id="tab-sol" role="tabpanel" aria-labelledby="tabbtn-sol">
+      <div class="card">
+        <div class="section-title">Solution outline</div>
+        <div class="render" id="solutionBox"></div>
+        <div class="hint" id="solutionSteps" style="margin-top:10px"></div>
+      </div>
+    </section>
+
+  </div>
+
+<script>
+// API Endpoint - Will be updated after Vercel deployment
+const API_ENDPOINT = 'https://ode-20218-2nd-df-6.vercel.app/api/ai-hint';
+const EXERCISE_MODE = 0; // 0 = Exam mode, 1 = Practice mode
+
+/* Exercise data structure */
+const problems = [
+  {
+    id: 'ode_second_order_nonhomogeneous_01',
+    title: 'Second order - Non-homogeneous equation',
+    latexProblem: String.raw`y'' + y = x`,
+    homogeneousSolution: String.raw`C_1 \cos(x) + C_2 \sin(x)`,
+    particularSolution: String.raw`x`,
+    hint1Html: `
+      <p><strong>Hint 1:</strong> The general solution consists of two parts: \(y = y_h + y_p\)</p>
+      <p>where \(y_h\) solves the homogeneous equation \(y'' + y = 0\)</p>
+      <p>and \(y_p\) is a particular solution of the full equation.</p>
+    `,
+    hint2Html: `
+      <p><strong>Hint 2:</strong> The homogeneous equation \(y'' + y = 0\) has the characteristic equation \(r^2 + 1 = 0\)</p>
+      <p>The roots are: \(r = \pm i\)</p>
+      <p>Therefore the homogeneous solution is: \(y_h = C_1 \cos(x) + C_2 \sin(x)\)</p>
+      <p>For a particular solution, try substituting a first-degree polynomial: \(y_p = Ax + B\)</p>
+    `,
+    solutionDisplayLatex: String.raw`y = C_1 \cos(x) + C_2 \sin(x) + x`,
+    solutionStepsHtml: `
+      <h3>Solution steps:</h3>
+      <ol>
+        <li>
+          <strong>Solving the homogeneous equation:</strong><br>
+          \(y'' + y = 0\)<br>
+          Characteristic equation: \(r^2 + 1 = 0\)<br>
+          Roots: \(r = \pm i\)<br>
+          Homogeneous solution: \(y_h = C_1 \cos(x) + C_2 \sin(x)\)
+        </li>
+        <li>
+          <strong>Finding a particular solution:</strong><br>
+          Try \(y_p = Ax + B\)<br>
+          \(y_p' = A\), \(y_p'' = 0\)<br>
+          Substitution: \(0 + (Ax + B) = x\)<br>
+          Hence: \(A = 1\), \(B = 0\)<br>
+          Particular solution: \(y_p = x\)
+        </li>
+        <li>
+          <strong>The general solution:</strong><br>
+          \(y = y_h + y_p = C_1 \cos(x) + C_2 \sin(x) + x\)
+        </li>
+      </ol>
+    `,
+    check: {
+      type: 'second_order_nonhomogeneous',
+    }
+  }
+];
+
+/* Tabs */
+(function(){
+  const buttons = [...document.querySelectorAll('.tab-btn')];
+  const panels  = [...document.querySelectorAll('.tab-panel')];
+  function activate(id){
+    buttons.forEach(b=>b.setAttribute('aria-selected', String(b.getAttribute('aria-controls')===id)));
+    panels.forEach(p=>p.classList.toggle('active', p.id===id));
+    if (window.MathJax?.typesetPromise) MathJax.typesetPromise(panels.filter(p=>p.id===id));
+  }
+  buttons.forEach(btn=>btn.addEventListener('click', ()=>activate(btn.getAttribute('aria-controls'))));
+})();
+
+/* Render helpers */
+function waitForLibraries(cb){
+  let tries=0;(function check(){
+    if (typeof math!=='undefined' && window.MathJax) cb();
+    else if(tries++<100) setTimeout(check,50);
+    else console.error('Libraries failed to load');
+  })();
+}
+async function renderLatexTo(containerId, latex, display=true){
+  const el = document.getElementById(containerId);
+  el.innerHTML = display ? `\\[ ${latex} \\]` : `\\(${latex}\\)`;
+  if (window.MathJax?.typesetPromise){
+    try{ await MathJax.typesetPromise([el]) }catch{ el.innerHTML = `<div class="monospace">${latex}</div>` }
+  }
+}
+function setHtml(id, html){
+  const el = document.getElementById(id);
+  el.innerHTML = html;
+  if (window.MathJax?.typesetPromise){ MathJax.typesetPromise([el]); }
+}
+
+/* Input processing functions */
+function sanitizeBasic(s){ return (s||'').replace(/[\u200E\u200F\u202A-\u202E\u2066-\u2069]/g,'').trim() }
+function looksLikeLatex(s){
+  return /\\[a-zA-Z]+|\\\[|\\\]|\\\(|\\\)|\$(?!\s*$)|\\int|\\sum|\\frac|\\sqrt|\\sin|\\cos|\\exp|\\cdot/.test(s)
+}
+function insertImplicitMult(s){
+  const id = '([A-Za-z](?:[A-Za-z0-9_]*))';
+
+  s = s.replace(
+    new RegExp(
+      '\\b' + id + '\\s*(?=\\()(?!(?:\\s*\\)))'
+    , 'g'),
+    (m)=> {
+      const name = m.replace(/\s*\($/,'').trim();
+      const funcs = ['exp','sin','cos','tan','asin','acos','atan','log','ln','sqrt','abs'];
+      return funcs.includes(name) ? m : m.replace(/\s*\($/,'*(');
+    }
+  );
+
+  s = s.replace(/\b([Cc]_?\d+)\s*([a-zA-Z]+\()/g, '$1*$2');
+
+  s = s.replace(new RegExp(id + '\\s*(?=\\b[xX]\\b)', 'g'), '$1*');
+  s = s.replace(new RegExp(id + '\\s*e\\s*\\^', 'g'), '$1*e^');
+  s = s.replace(new RegExp(id + '\\s*(?=\\b(?:sin|cos|tan|asin|acos|atan|exp|log|ln|sqrt|abs)\\b)', 'g'), '$1*');
+  return s;
+}
+function convertMathNotation(s){
+  s = s.replace(/\be\s*\^\s*\(/g, 'exp(');
+  s = s.replace(/\be\s*\^\s*([a-zA-Z_]\w*)/g, 'exp($1)');
+  s = s.replace(/\be\s*\^\s*([0-9]+)/g, 'exp($1)');
+  s = s.replace(/\be\s*\^\s*\{([^}]+)\}/g, 'exp($1)');
+
+  s = s.replace(/exp\((\d+)([a-zA-Z])\)/g, 'exp($1*$2)');
+
+  s = s.replace(/(\d+)([a-zA-Z])/g, '$1*$2');
+
+  s = s.replace(/\^/g, '**');
+  return s;
+}
+function normalizeToPlain(s){
+  let t = sanitizeBasic(s);
+  t = t.replace(/^\s*[yY]\s*(\(\s*x\s*\))?\s*=\s*/, '');
+
+  t = t.replace(/\\frac\{1\}\{2\}/g, '0.5');
+  t = t.replace(/\\frac\{(\d+)\}\{(\d+)\}/g, '$1/$2');
+
+  t = t.replace(/(0\.5|1\/2|\d+\/\d+)([a-zA-Z])/g, '$1*$2');
+
+  t = t.replace(/C_\{(\d+)\}/g, 'C_$1');
+
+  t = t.replace(/\b(sin|cos|tan|exp|ln|log|sqrt)x\b/g, '$1(x)');
+  t = t.replace(/\b(sin|cos|tan|exp|ln|log|sqrt)\s+x\b/g, '$1(x)');
+  t = t.replace(/\b(sin|cos|tan|exp|ln|log|sqrt)(?=\s*[\+\-\*\/\s]|$)/g, '$1(x)');
+
+  t = t.replace(/(\d),(\d)/g,'$1.$2');
+  t = insertImplicitMult(t);
+  t = convertMathNotation(t);
+  return t;
+}
+
+const currentCheck = { type: null, homogeneousTerms: [], particularTerm: '', particularCoeff: 1 };
+
+/* UI wiring + loadProblem */
+let conversationHistory = [];
+let attemptCount = 0;
+
+waitForLibraries(function(){
+  const inputEl = document.getElementById('inputRaw');
+const btnClear = document.getElementById('btnClear');
+const btnAIHelp = document.getElementById('btnAIHelp');
+  const btnCloseAI = document.getElementById('btnCloseAI');
+
+  function setStatus(msg, cls){
+    const el = document.getElementById('status');
+    el.className = `status ${cls||''}`;
+    el.textContent = msg||'';
+  }
+
+  let debTimer=null; function debounce(fn,ms=180){ clearTimeout(debTimer); debTimer=setTimeout(fn,ms) }
+  async function process(){
+    const raw0 = inputEl.value, raw = sanitizeBasic(raw0);
+    if(!raw){ document.getElementById('render').innerHTML=''; setStatus('',''); return }
+    const latexMode = looksLikeLatex(raw);
+    try{
+      if(latexMode){
+        await renderLatexTo('render', raw, true);
+      }else{
+        const plain = normalizeToPlain(raw);
+        const node = math.parse(plain);
+        let latex = node.toTex({ parenthesis:'keep', implicit:'show' });
+
+        latex = latex.replace(/C\\_1/g, 'C_{1}');
+        latex = latex.replace(/C\\_2/g, 'C_{2}');
+        latex = latex.replace(/C\\_3/g, 'C_{3}');
+        latex = latex.replace(/C\\_4/g, 'C_{4}');
+
+        await renderLatexTo('render', latex, true);
+      }
+    }catch(err){
+      await renderLatexTo('render', raw, true);
+      setStatus('', '');
+    }
+  }
+
+  inputEl.addEventListener('input', ()=>debounce(process,120));
+
+  btnClear.addEventListener('click', ()=>{
+    inputEl.value=''; document.getElementById('render').innerHTML=''; setStatus('','');
+    document.getElementById('checkMsg').textContent='';
+    document.getElementById('aiResponse').style.display='none';
+    conversationHistory = [];
+    attemptCount = 0;
+    inputEl.focus();
+  });
+
+  // AI Helper
+  btnAIHelp.addEventListener('click', async function() {
+    const userInput = sanitizeBasic(inputEl.value);
+    const aiBox = document.getElementById('aiResponse');
+
+    if (!userInput) {
+      alert('Please enter an answer before requesting help');
+      return;
+    }
+
+    aiBox.style.display = 'block';
+    document.getElementById('aiResponseContent').innerHTML = '<div class="ai-message ai-loading"><div class="spinner"></div>Checking your input, please wait a few seconds...</div>';
+
+    try {
+      const response = await fetch(API_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userInput: userInput,
+          problemData: {
+  question: problems[0].latexProblem,
+  homogeneousSolution: problems[0].homogeneousSolution,
+  particularSolution: problems[0].particularSolution,
+  correctSolution: problems[0].solutionDisplayLatex,
+  steps: problems[0].solutionStepsHtml,
+  hint1: problems[0].hint1Html,
+  hint2: problems[0].hint2Html
+},
+          conversationHistory: conversationHistory,
+          exerciseMode: EXERCISE_MODE
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.error) {
+        document.getElementById('aiResponseContent').innerHTML = '<div class="ai-message" style="color:var(--bad)">Error: ' + data.error + '</div>';
+        return;
+      }
+
+     // Save full history
+conversationHistory.push({
+  user: userInput,
+  ai: data.hint
+});
+attemptCount++;
+
+displayAIResponse();
+
+    } catch (error) {
+      document.getElementById('aiResponseContent').innerHTML = '<div class="ai-message" style="color:var(--bad)">Unable to connect to server</div>';
+      console.error(error);
+    }
+  });
+
+  // Close AI button
+  btnCloseAI.addEventListener('click', function() {
+    document.getElementById('aiResponse').style.display = 'none';
+    conversationHistory = [];
+    attemptCount = 0;
+  });
+
+  function displayAIResponse() {
+    const aiBox = document.getElementById('aiResponseContent');
+    let html = '';
+
+    conversationHistory.forEach((turn, i) => {
+      html += `<div class="ai-message"><strong>Query #${i + 1}:</strong><br>
+        <strong>Answer entered:</strong> <code>${turn.user}</code>
+      </div>`;
+      html += `<div class="ai-message" style="background:#1e2940">
+        <strong>Digital Friend:</strong> ${turn.ai}
+      </div>`;
+    });
+
+    aiBox.innerHTML = html;
+
+    if (window.MathJax?.typesetPromise) {
+      MathJax.typesetPromise([aiBox]);
+    }
+  }
+
+  async function loadProblem(index=0){
+    const p = problems[index];
+    currentCheck.type = p.check.type;
+
+    await renderLatexTo('problemRender', p.latexProblem, true);
+    await renderLatexTo('solutionBox', p.solutionDisplayLatex, true);
+    setHtml('solutionSteps', p.solutionStepsHtml);
+    setHtml('hint1Box', p.hint1Html);
+    setHtml('hint2Box', p.hint2Html);
+
+    const inputEl2 = document.getElementById('inputRaw');
+    inputEl2.value = p.exampleInput || '';
+    (typeof process === 'function') && process();
+  }
+
+  loadProblem(0);
+});
+</script>
+
+<script>
+/* Equation editor module */
+(function(){
+  function insertAtCaret(el, before, after){
+    el.focus();
+    const s = el.selectionStart ?? el.value.length;
+    const e = el.selectionEnd   ?? el.value.length;
+    const sel = el.value.slice(s, e);
+    const text = before + (sel || '') + (after || '');
+    el.value = el.value.slice(0, s) + text + el.value.slice(e);
+    const pos = sel ? s + before.length + sel.length : s + before.length;
+    el.setSelectionRange(pos, pos);
+    el.dispatchEvent(new Event('input',  { bubbles:true }));
+    el.dispatchEvent(new Event('change', { bubbles:true }));
+  }
+
+  function btn(label, title, onClick){
+    const b = document.createElement('button');
+    b.type = 'button'; b.textContent = label; if(title) b.title = title;
+    b.addEventListener('click', onClick);
+    return b;
+  }
+
+  window.initEquationToolbar = function(opts){
+    const input = document.querySelector(opts.target);
+    const mount = document.querySelector(opts.mount);
+    if(!input || !mount) return;
+
+    const bar = document.createElement('div');
+    bar.className = 'eqtb';
+
+const items = [
+  {label:'C_1', title:'Constant C_1',     click:()=>insertAtCaret(input,'C_1','')},
+  {label:'C_2', title:'Constant C_2',     click:()=>insertAtCaret(input,'C_2','')},
+
+  {label:'sin', title:'\\sin( )',     click:()=>insertAtCaret(input,'\\sin(',')')},
+  {label:'cos', title:'\\cos( )',     click:()=>insertAtCaret(input,'\\cos(',')')},
+
+  {label:'frac',title:'\\frac{ }{ }', click:()=>insertAtCaret(input,'\\frac{','}{}')},
+  {label:'\u221A',   title:'\\sqrt{ }',    click:()=>insertAtCaret(input,'\\sqrt{','}')},
+
+  {label:'e^x', title:'e^{x}',        click:()=>insertAtCaret(input,'e^','x')},
+  {label:'x^2', title:'x^{2}',        click:()=>insertAtCaret(input,'x^','2')},
+
+  {label:'\u222B',   title:'\\int',        click:()=>insertAtCaret(input,'\\int ','')},
+
+  {label:'( )', title:'Parentheses',   click:()=>insertAtCaret(input,'(',')')},
+  {label:'{ }', title:'Curly braces', click:()=>insertAtCaret(input,'{','}')},
+  {label:'| |', title:'Absolute value',           click:()=>insertAtCaret(input,'|','|')},
+
+];
+
+    items.forEach(it => bar.appendChild(btn(it.label, it.title, it.click)));
+    mount.appendChild(bar);
+  };
+})();
+</script>
+
+<script>
+  initEquationToolbar({ target:'#inputRaw', mount:'#eqToolbar' });
+</script>
+
+</body>
+</html>
